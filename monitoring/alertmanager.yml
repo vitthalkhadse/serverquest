@@ -1,0 +1,20 @@
+# Apni details daalo. Jo use nahi karna (email ya slack) uska block hata do.
+# Dhyan: is file mein real password/webhook ke saath git mein commit mat karna.
+route:
+  receiver: team
+  group_by: [alertname]
+  group_wait: 30s
+  repeat_interval: 4h
+receivers:
+  - name: team
+    email_configs:
+      - to: you@example.com
+        from: alerts@example.com
+        smarthost: smtp.gmail.com:587
+        auth_username: alerts@example.com
+        auth_password: "GMAIL_APP_PASSWORD"
+        send_resolved: true
+    slack_configs:
+      - api_url: "https://hooks.slack.com/services/XXX/YYY/ZZZ"
+        channel: "#alerts"
+        send_resolved: true

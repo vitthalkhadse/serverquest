@@ -1,0 +1,63 @@
+# Chalao: docker compose --env-file ../.env -f docker-compose.monitoring.yml up -d
+# .env mein GRAFANA_PASSWORD zaroori. Saare ports 127.0.0.1 pe (internet pe nahi) -> SSH tunnel se kholo:
+#   ssh -L 3000:localhost:3000 user@server   phir browser: http://localhost:3000
+name: monitoring
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=15d"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - prom_data:/prometheus
+    ports: ["127.0.0.1:9090:9090"]
+    networks: [default, app]
+    restart: unless-stopped
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    volumes: ["./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"]
+    ports: ["127.0.0.1:9093:9093"]
+    restart: unless-stopped
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    command: ["--path.rootfs=/host"]
+    pid: host
+    volumes: ["/:/host:ro,rslave"]
+    restart: unless-stopped
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+  loki:
+    image: grafana/loki:3.1.1
+    volumes: ["loki_data:/loki"]
+    restart: unless-stopped
+  promtail:
+    image: grafana/promtail:3.1.1
+    volumes:
+      - ./promtail.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: ["-config.file=/etc/promtail/config.yml"]
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD .env mein set karo}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    ports: ["127.0.0.1:3000:3000"]
+    restart: unless-stopped
+networks:
+  app:
+    external: true
+    name: ${APP_NETWORK:-serverquest_default}   # tumhare app compose ka network naam (docker network ls)
+volumes:
+  prom_data:
+  loki_data:
+  grafana_data:
