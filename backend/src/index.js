@@ -4,6 +4,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import pg from "pg";
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import client from "prom-client";
 import { runCommand } from "./engine.js";
 import { cleanPlayer, cleanAttempts, cleanCommand, cleanId } from "./validate.js";
@@ -23,7 +25,16 @@ client.collectDefaultMetrics();
 const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", 1); // sirf nginx ke peeche
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "upgrade-insecure-requests": null, // HTTP pe CSS/JS block na ho
+      },
+    },
+  })
+);
 app.use(cors({ origin: process.env.CORS_ORIGIN || false })); // default: same-origin only
 app.use(express.json({ limit: "2kb" }));
 
@@ -114,6 +125,14 @@ app.get(
 );
 
 app.use("/api", (_req, res) => res.status(404).json({ error: "not found" }));
+
+// Frontend (Vite build) isi server se serve hota hai. Local dev mein public folder nahi hota, to skip.
+const publicDir = fileURLToPath(new URL("../public", import.meta.url));
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir, { maxAge: "1h" }));
+  app.get("*", (_req, res) => res.sendFile(path.join(publicDir, "index.html")));
+}
+
 // Error pe stack trace kabhi bahar nahi jaata
 app.use((err, _req, res, _next) => {
   console.error(err.message);

@@ -31,7 +31,7 @@ done
 [ -n "$OLD" ] && { docker stop -t 15 $OLD >/dev/null; docker rm $OLD >/dev/null; }
 
 # 4) baaki services (static frontend, nginx) sirf jo badli unhe recreate
-docker compose up -d --no-deps frontend nginx
+docker compose up -d --no-deps nginx
 
 # 5) final check
 for _ in $(seq 1 15); do
