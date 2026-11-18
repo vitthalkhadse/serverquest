@@ -7,5 +7,8 @@ export function runCommand(level, input) {
       return { output: c.output, solved: Boolean(c.solves) };
     }
   }
-  return { output: `bash: '${cmd.split(" ")[0]}' yahan kaam ka nahi / not found`, solved: false };
+  return {
+    output: `bash: '${cmd.split(" ")[0]}' yahan kaam ka nahi / not found`,
+    solved: false,
+  };
 }

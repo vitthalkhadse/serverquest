@@ -8,7 +8,8 @@ async function api(path, opts) {
     headers: { "Content-Type": "application/json" },
     ...opts,
   });
-  if (res.status === 429) throw new Error("Thoda dheere! Bahut zyada requests 🐢");
+  if (res.status === 429)
+    throw new Error("Thoda dheere! Bahut zyada requests 🐢");
   if (!res.ok) throw new Error("Server error, dobara try karo");
   return res.json();
 }
@@ -26,9 +27,14 @@ export default function App() {
   const [hint, setHint] = useState(false);
   const endRef = useRef();
 
-  const loadBoard = () => api("/leaderboard").then(setBoard).catch(() => {});
+  const loadBoard = () =>
+    api("/leaderboard")
+      .then(setBoard)
+      .catch(() => {});
   useEffect(() => {
-    api("/levels").then(setLevels).catch(() => {});
+    api("/levels")
+      .then(setLevels)
+      .catch(() => {});
     loadBoard();
   }, []);
   useEffect(() => endRef.current?.scrollIntoView(), [lines]);
@@ -51,9 +57,18 @@ export default function App() {
     try {
       const res = await api(`/levels/${level.id}/command`, {
         method: "POST",
-        body: JSON.stringify({ command: cmd, player: player || "anonymous", attempts: n }),
+        body: JSON.stringify({
+          command: cmd,
+          player: player || "anonymous",
+          attempts: n,
+        }),
       });
-      setLines((l) => [...l, `$ ${cmd}`, res.output, ...(res.solved ? ["✅ Server fixed!"] : [])]);
+      setLines((l) => [
+        ...l,
+        `$ ${cmd}`,
+        res.output,
+        ...(res.solved ? ["✅ Server fixed!"] : []),
+      ]);
       if (res.solved) {
         setSolved(true);
         setDone((d) => [...new Set([...d, level.id])]);
@@ -92,12 +107,18 @@ export default function App() {
           <section className="box">
             <h3>LEVELS</h3>
             {levels.map((l, i) => (
-              <button key={l.id} onClick={() => start(l)} className={level?.id === l.id ? "btn on" : "btn"}>
+              <button
+                key={l.id}
+                onClick={() => start(l)}
+                className={level?.id === l.id ? "btn on" : "btn"}
+              >
                 <Sprite name={ICONS[i % ICONS.length]} size={3} />
                 <span>
                   {l.title} <small>({l.difficulty})</small>
                 </span>
-                {done.includes(l.id) && <Sprite name="star" size={3} className="float" />}
+                {done.includes(l.id) && (
+                  <Sprite name="star" size={3} className="float" />
+                )}
               </button>
             ))}
           </section>
@@ -145,13 +166,22 @@ export default function App() {
                   <Sprite name="heart" size={3} /> Hint
                 </button>
                 <span>Attempts: {tries}</span>
-                <Sprite name="panda" size={4} className={solved ? "dance" : "bob"} />
+                <Sprite
+                  name="panda"
+                  size={4}
+                  className={solved ? "dance" : "bob"}
+                />
               </div>
               {hint && <p className="hinttext">{level.hint}</p>}
               {solved && (
                 <div className="confetti">
                   {[1, 2, 3, 4, 5, 6].map((n) => (
-                    <Sprite key={n} name={n % 2 ? "star" : "heart"} size={4} className={`pop s${n}`} />
+                    <Sprite
+                      key={n}
+                      name={n % 2 ? "star" : "heart"}
+                      size={4}
+                      className={`pop s${n}`}
+                    />
                   ))}
                 </div>
               )}

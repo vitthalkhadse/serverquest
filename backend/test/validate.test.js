@@ -1,6 +1,11 @@
 import test from "node:test";
 import assert from "node:assert";
-import { cleanPlayer, cleanAttempts, cleanCommand, cleanId } from "../src/validate.js";
+import {
+  cleanPlayer,
+  cleanAttempts,
+  cleanCommand,
+  cleanId,
+} from "../src/validate.js";
 
 test("player: script tag reject", () => {
   assert.strictEqual(cleanPlayer("<script>alert(1)</script>"), "anonymous");

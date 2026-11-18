@@ -1,9 +1,12 @@
-name: serverquest
+name: CI
 on:
   push:
     branches: [main, dev, "feature/**"]
   pull_request:
     branches: [main, dev]
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -33,11 +36,8 @@ jobs:
     needs: test
     if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev')
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [backend, frontend]
     env:
-      IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/serverquest-${{ matrix.service }}
+      IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/serverquest
       CHANNEL: ${{ github.ref_name == 'main' && 'latest' || 'dev' }}
     steps:
       - uses: actions/checkout@v4
@@ -49,11 +49,11 @@ jobs:
       - name: Build (local, scan ke liye)
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ matrix.service }}
+          context: .
           load: true
           tags: ${{ env.IMAGE }}:scan
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          cache-from: type=gha,scope=serverquest
+          cache-to: type=gha,mode=max,scope=serverquest
       - name: Trivy scan (HIGH/CRITICAL mile to fail)
         uses: aquasecurity/trivy-action@0.28.0
         with:
@@ -64,9 +64,10 @@ jobs:
       - name: Push
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ matrix.service }}
+          context: .
           push: true
           tags: |
             ${{ env.IMAGE }}:${{ github.sha }}
             ${{ env.IMAGE }}:${{ env.CHANNEL }}
-          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-from: type=gha,scope=serverquest
+          cache-to: type=gha,mode=max,scope=serverquest

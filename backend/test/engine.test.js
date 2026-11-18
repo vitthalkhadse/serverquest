@@ -10,7 +10,10 @@ const level = {
 };
 
 test("normal command solve nahi karta", () => {
-  assert.deepStrictEqual(runCommand(level, "ls -l"), { output: "a.txt", solved: false });
+  assert.deepStrictEqual(runCommand(level, "ls -l"), {
+    output: "a.txt",
+    solved: false,
+  });
 });
 test("sahi command solve karta hai", () => {
   assert.strictEqual(runCommand(level, "fix it").solved, true);

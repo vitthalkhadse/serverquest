@@ -2,7 +2,9 @@
 const PLAYER_RE = /^[\p{L}\p{N} _.-]{1,20}$/u;
 
 export function cleanPlayer(p) {
-  return typeof p === "string" && PLAYER_RE.test(p.trim()) ? p.trim() : "anonymous";
+  return typeof p === "string" && PLAYER_RE.test(p.trim())
+    ? p.trim()
+    : "anonymous";
 }
 export function cleanAttempts(a) {
   const n = Number.parseInt(a, 10);
